@@ -19,44 +19,28 @@
             display: flex;
             justify-content: flex-end;
         }
-        .sold {
-            background-color: red;
-        }
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px;
-        }
-        .save-button {
-            background-color: blue;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-        }
-        .download-button {
-            background-color: purple;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
+
+        /* Media query for mobile devices */
+        @media (max-width: 600px) {
+            .seat {
+                width: 20px;
+                height: 20px;
+                line-height: 20px;
+                margin: 2px;
+            }
+            .row {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
     <div id="seating"></div>
-    <div class="button-container">
-        <button class="save-button" onclick="saveToCSV()">ذخیره در لیست</button>
-        <button class="download-button" onclick="downloadCSV()">دانلود فایل CSV</button>
-    </div>
     <script>
         const rows = 20;
         const seatsPerRow = 35;
         const seating = document.getElementById('seating');
         const seats = [];
-
-        // Load seating data from localStorage
-        const savedSeatingData = JSON.parse(localStorage.getItem('seatingData')) || [];
 
         for (let i = 0; i < rows; i++) {
             const row = document.createElement('div');
@@ -69,66 +53,44 @@
                 seat.addEventListener('click', () => handleSeatClick(seat, seatNumber));
                 row.appendChild(seat);
                 seats.push({ seatNumber, seat });
-
-                // Restore seat status from saved data
-                const savedSeat = savedSeatingData.find(s => s.seatNumber === seatNumber);
-                if (savedSeat) {
-                    seat.classList.add('sold');
-                    seat.dataset.owner = savedSeat.owner;
-                }
             }
             seating.appendChild(row);
         }
 
         function handleSeatClick(seat, seatNumber) {
-            if (!seat.classList.contains('sold')) {
-                seat.classList.add('sold');
+            if (seat.style.backgroundColor === 'green') {
+                seat.style.backgroundColor = 'red';
                 const owner = prompt('نام صاحب صندلی را وارد کنید:');
                 if (owner) {
                     seat.dataset.owner = owner;
                 }
-            } else {
+            } else if (seat.style.backgroundColor === 'red') {
                 if (confirm('آیا از حذف بلیط اطمینان دارید؟')) {
-                    seat.classList.remove('sold');
+                    seat.style.backgroundColor = 'green';
                     delete seat.dataset.owner;
                 }
             }
-            saveSeatingData();
-        }
-
-        function saveSeatingData() {
-            const seatingData = seats
-                .filter(({ seat }) => seat.classList.contains('sold'))
-                .map(({ seatNumber, seat }) => ({
-                    seatNumber,
-                    owner: seat.dataset.owner
-                }));
-            localStorage.setItem('seatingData', JSON.stringify(seatingData));
         }
 
         function saveToCSV() {
             let csvContent = 'شماره صندلی,نام صاحب صندلی\n';
             seats.forEach(({ seatNumber, seat }) => {
                 if (seat.dataset.owner) {
-                    csvContent += `${seatNumber},${seat.dataset.owner}\n`;
+                    csvContent += ${seatNumber},${seat.dataset.owner}\n;
                 }
             });
-            localStorage.setItem('csvData', csvContent);
-            alert('اطلاعات ذخیره شد');
-        }
-
-        function downloadCSV() {
-            const csvContent = localStorage.getItem('csvData');
-            if (!csvContent) {
-                alert('هیچ اطلاعاتی برای دانلود وجود ندارد');
-                return;
-            }
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'seating.csv';
             link.click();
         }
+
+        // Add a button to save the CSV
+        const saveButton = document.createElement('button');
+        saveButton.textContent = 'ذخیره به CSV';
+        saveButton.addEventListener('click', saveToCSV);
+        document.body.appendChild(saveButton);
     </script>
 </body>
 </html>
